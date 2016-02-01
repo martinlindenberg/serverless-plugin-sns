@@ -33,6 +33,8 @@ npm install serverless-plugin-sns --prefix=. --save
     "serverless-plugin-sns"
 ]
 
+```
+
 ### Run the Plugin
 
  - the plugin uses a hook that is called after each deployment of a function 
