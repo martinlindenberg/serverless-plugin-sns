@@ -32,14 +32,13 @@ npm install serverless-plugin-sns --prefix=. --save
 "plugins": [
     "serverless-plugin-sns"
 ]
-
 ```
 
 ### Run the Plugin
 
  - the plugin uses a hook that is called after each deployment of a function 
  - you only have to deploy your function as usual `sls function deploy`
- - modify the s-function.json in your functions folder to bind the function to a sns notification
+ - add the following attribute to the s-function.json in your functions folder
 
 ```
   ...
