@@ -16,7 +16,7 @@ This plugin easily subscribes your lambda functions to SNS notifications.
 
 ```
 cd projectfolder
-npm install serverless-plugin-alerting
+npm install serverless-plugin-sns
 ```
 
  - add the plugin to your s-project.json file
