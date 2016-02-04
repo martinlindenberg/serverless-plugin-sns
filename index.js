@@ -78,6 +78,9 @@ module.exports = function(SPlugin) {
                 let _this = this;
                 _this._bindFunctions(_this.functionSNSSettings);
             }.bind(_this))
+            .catch(function(e){
+                console.log('error in manage topics', e)
+            });
         }
 
         /** 
@@ -180,23 +183,35 @@ module.exports = function(SPlugin) {
                         topicList[topicName] = topicName;
                     }
                 }
+
+                var topicCreatePromises = [];
                 
                 for (var i in this.topics) {
                     if (!topicList[i]) {
                         console.log('topic ' + i + ' does not exist. it will be created now');
-                        _this.sns.createTopicAsync({
-                            'Name': i
-                        })
-                        .then(function(){
-                            console.log('topic created');
-                        })
-                        .catch(function(e){
-                            console.log('error during creation of the topic !', e)
-                        });
+                        topicCreatePromises.push(
+                            _this.sns.createTopicAsync({
+                                'Name': i
+                            })
+                            .then(function(){
+                                console.log('topic created');
+                            })
+                            .catch(function(e){
+                                console.log('error during creation of the topic !', e)
+                            })
+                        );
                     } else {
                         console.log('topic ' + i + ' exists.');
                     }
-                }                
+                }
+
+                if (topicCreatePromises.length > 0) {
+                    return BbPromise.all(topicCreatePromises);
+                } else {
+                    return new BbPromise(function(resolve, reject) {
+                        return resolve(evt);
+                    });                    
+                }
             }.bind(this));
         }
 
