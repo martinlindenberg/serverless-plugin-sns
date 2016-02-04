@@ -117,9 +117,8 @@ module.exports = function(SPlugin) {
          * @return string
          */
         _getTopicNameBySettings (settings) {
-            var projectPath = this.S.config.projectPath.split('/');
             var replacements = [];
-            replacements['project'] = projectPath[(projectPath.length - 1)];
+            replacements['project'] = this.S.state.meta.variables.project;
             replacements['stage'] = this.stage;
             replacements['component'] = settings.deployed.component;
             replacements['module'] = settings.deployed.module;
