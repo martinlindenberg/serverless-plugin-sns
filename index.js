@@ -68,7 +68,7 @@ module.exports = function(SPlugin) {
 
             _this.functionSNSSettings = _this._getFunctionsSNSSettings(evt, region);
 
-            // no alert.json found
+            // no sns.json found
             if (_this.functionSNSSettings.length == 0) {
                 return;
             }
@@ -80,6 +80,9 @@ module.exports = function(SPlugin) {
             }.bind(_this))
         }
 
+        /** 
+         * Binds functions to topics
+         */ 
         _bindFunctions (settings) {
             let _this = this;
 
@@ -88,7 +91,7 @@ module.exports = function(SPlugin) {
                 functionArn = functionArn.split(':');
                 functionArn.pop();
                 functionArn = functionArn.join(':');
-                var sns = settings[i].sns.topic;
+                var sns = _this._getTopicNameBySettings(settings[i]);
 
                 console.log('binding function ' + settings[i].deployed.function + ' to topic ' + sns);
                 _this.sns.subscribeAsync({
@@ -101,6 +104,30 @@ module.exports = function(SPlugin) {
                     // console.log('result', result);
                 });
             }
+        }
+
+        /** 
+         * returns the topic that needs to be created replaces keys
+         *
+         * @param object settings
+         *
+         * @return string
+         */
+        _getTopicNameBySettings (settings) {
+            var projectPath = this.S.config.projectPath.split('/');
+            var replacements = [];
+            replacements['project'] = projectPath[(projectPath.length - 1)];
+            replacements['stage'] = this.stage;
+            replacements['component'] = settings.deployed.component;
+            replacements['module'] = settings.deployed.module;
+            replacements['function']= settings.deployed.function;
+
+            var topic = settings.sns.topic;
+            for (var i in replacements) {
+                topic = topic.replace('${' + i + '}', replacements[i]);
+            }
+
+            return topic;
         }
 
         _getTopicArnByFunctionArn(functionArn, topicName){
@@ -123,7 +150,7 @@ module.exports = function(SPlugin) {
 
             var topics = [];
             for (var i in settings) {
-                var topic = settings[i].sns.topic;
+                var topic = _this._getTopicNameBySettings(settings[i]);
                 topics[topic] = topic;
             }
 
