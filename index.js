@@ -184,7 +184,7 @@ module.exports = function(SPlugin) {
                 }
 
                 var topicCreatePromises = [];
-                
+
                 for (var i in this.topics) {
                     if (!topicList[i]) {
                         console.log('topic ' + i + ' does not exist. it will be created now');
@@ -207,9 +207,7 @@ module.exports = function(SPlugin) {
                 if (topicCreatePromises.length > 0) {
                     return BbPromise.all(topicCreatePromises);
                 } else {
-                    return new BbPromise(function(resolve, reject) {
-                        return resolve(evt);
-                    });                    
+                    return BbPromise.resolve();
                 }
             }.bind(this));
         }
