@@ -1,6 +1,8 @@
 Serverless Plugin SNS
 =====================
 
+[![NPM](https://nodei.co/npm/serverless-plugin-sns.png?downloads=true)](https://nodei.co/npm/serverless-plugin-sns/)
+
 This plugin easily subscribes your lambda functions to SNS notifications.
 
 *Note*: This plugin supports Serverless 0.2.* and 0.3.*
