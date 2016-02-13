@@ -96,7 +96,7 @@ module.exports = function(SPlugin) {
                 functionArn = functionArn.join(':');
                 var sns = _this._getTopicNameBySettings(settings[i]);
 
-                console.log('binding function ' + settings[i].deployed.function + ' to topic ' + sns);
+                console.log('binding function ' + settings[i].deployed.functionName + ' to topic ' + sns);
                 _this.sns.subscribeAsync({
                     'Protocol': 'lambda',
                     'TopicArn': _this._getTopicArnByFunctionArn(functionArn, sns),
@@ -120,9 +120,7 @@ module.exports = function(SPlugin) {
             var replacements = [];
             replacements['project'] = this.S.state.meta.variables.project;
             replacements['stage'] = this.stage;
-            replacements['component'] = settings.deployed.component;
-            replacements['module'] = settings.deployed.module;
-            replacements['function']= settings.deployed.function;
+            replacements['functionName']= settings.deployed.functionName;
 
             var topic = settings.sns.topic;
             for (var i in replacements) {
@@ -245,7 +243,7 @@ module.exports = function(SPlugin) {
             var settings = [];
             for (var deployedIndex in evt.data.deployed[region]) {
                 let deployed = evt.data.deployed[region][deployedIndex],
-                    settingsFile = _this.S.config.projectPath + '/' + deployed.component + '/' + deployed.module + '/' + deployed.function + '/s-function.json';
+                    settingsFile = _this.S.config.projectPath + '/' + deployed.sPath + '/s-function.json';
 
                 if (!fs.existsSync(settingsFile)) {
                     continue;
@@ -263,7 +261,7 @@ module.exports = function(SPlugin) {
                         "sns": config.sns
                     });
                 } catch (e) {
-                    console.log('alerting.json not readable');
+                    console.log('s-function.json not readable');
                     continue;
                 }            
             }

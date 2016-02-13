@@ -5,7 +5,7 @@ Serverless Plugin SNS
 
 This plugin easily subscribes your lambda functions to SNS notifications.
 
-*Note*: This plugin supports Serverless 0.2.* and 0.3.*
+*Note*: This plugin supports Serverless 0.4.* (please see previous versions for older sls versions)
 
 
 ### Installation
@@ -44,6 +44,18 @@ npm install serverless-plugin-sns
 ```
 
  - the topic will be created automatically, if not yet done
+ - topicnames can use the following dynamic template-names:
+
+```
+${project}
+${stage}
+${functionName}
+
+example:
+  "sns": {
+    "topic": "${project}-sns"
+  },
+```
 
 ### Next Steps
 
