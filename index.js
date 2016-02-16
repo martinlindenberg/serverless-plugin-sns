@@ -90,19 +90,38 @@ module.exports = function(SPlugin) {
             let _this = this;
 
             for (var i in settings) {
+                var functionName = settings[i].deployed.Arn;
                 var functionArn = settings[i].deployed.Arn;
                 functionArn = functionArn.split(':');
                 functionArn.pop();
                 functionArn = functionArn.join(':');
                 var sns = _this._getTopicNameBySettings(settings[i]);
+                var topicArn = _this._getTopicArnByFunctionArn(functionArn, sns);
 
                 console.log('binding function ' + settings[i].deployed.functionName + ' to topic ' + sns);
                 _this.sns.subscribeAsync({
                     'Protocol': 'lambda',
-                    'TopicArn': _this._getTopicArnByFunctionArn(functionArn, sns),
-                    'Endpoint': functionArn,
+                    'TopicArn': topicArn,
+                    'Endpoint': functionArn + ":" + _this.stage,
                 })
                 .then(function(result){
+                    return new BbPromise(function(resolve, reject) {
+                        _this.lambda.addPermission({
+                            FunctionName: functionName,
+                            StatementId: Date.now().toString(),
+                            Action: 'lambda:InvokeFunction',
+                            Principal: 'sns.amazonaws.com',
+                            SourceArn: topicArn,
+                        }, function callback(err, data) {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(data);
+                            }
+                        });
+                    });
+                })
+                .then(function(result) {
                     console.log('done');
                     // console.log('result', result);
                 });
@@ -227,6 +246,12 @@ module.exports = function(SPlugin) {
             });
 
             BbPromise.promisifyAll(_this.sns);
+
+            _this.lambda = new AWS.Lambda({
+                region: region,
+                accessKeyId: this.S.config.awsAdminKeyId,
+                secretAccessKey: this.S.config.awsAdminSecretKey
+            });
         }
 
 
