@@ -3,6 +3,7 @@
 module.exports = function(S) {
 
     const AWS      = require('aws-sdk'),
+        SCli       = require(S.getServerlessPath('utils/cli')),
         BbPromise  = require('bluebird'); // Serverless uses Bluebird Promises and we recommend you do to because they provide more than your average Promise :)
 
     class ServerlessPluginSNS extends S.classes.Plugin {
@@ -77,7 +78,7 @@ module.exports = function(S) {
                 _this._bindFunctions(_this.functionSNSSettings);
             }.bind(_this))
             .catch(function(e){
-                console.log('error in manage topics', e)
+                SCli.log('error in manage topics', e)
             });
         }
 
@@ -96,7 +97,7 @@ module.exports = function(S) {
                 var sns = _this._getTopicNameBySettings(settings[i]);
                 var topicArn = _this._getTopicArnByFunctionArn(functionArn, sns);
 
-                console.log('binding function ' + settings[i].deployed.functionName + ' to topic ' + sns);
+                SCli.log('binding function ' + settings[i].deployed.functionName + ' to topic ' + sns);
                 _this.sns.subscribeAsync({
                     'Protocol': 'lambda',
                     'TopicArn': topicArn,
@@ -120,8 +121,7 @@ module.exports = function(S) {
                     });
                 })
                 .then(function(result) {
-                    console.log('done');
-                    // console.log('result', result);
+                    SCli.log('done');
                 });
             }
         }
@@ -202,20 +202,20 @@ module.exports = function(S) {
 
                 for (var i in this.topics) {
                     if (!topicList[i]) {
-                        console.log('topic ' + i + ' does not exist. it will be created now');
+                        SCli.log('topic ' + i + ' does not exist. it will be created now');
                         topicCreatePromises.push(
                             _this.sns.createTopicAsync({
                                 'Name': i
                             })
                             .then(function(){
-                                console.log('topic created');
+                                SCli.log('topic created');
                             })
                             .catch(function(e){
-                                console.log('error during creation of the topic !', e)
+                                SCli.log('error during creation of the topic !', e)
                             })
                         );
                     } else {
-                        console.log('topic ' + i + ' exists.');
+                        SCli.log('topic ' + i + ' exists.');
                     }
                 }
 
