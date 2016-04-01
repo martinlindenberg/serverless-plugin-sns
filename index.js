@@ -1,13 +1,11 @@
 'use strict';
 
-module.exports = function(SPlugin) {
+module.exports = function(S) {
 
     const AWS      = require('aws-sdk'),
-        path       = require('path'),
-        fs         = require('fs'),
         BbPromise  = require('bluebird'); // Serverless uses Bluebird Promises and we recommend you do to because they provide more than your average Promise :)
 
-    class ServerlessPluginSNS extends SPlugin {
+    class ServerlessPluginSNS extends S.classes.Plugin {
         constructor(S) {
             super(S);
         }
@@ -18,11 +16,11 @@ module.exports = function(SPlugin) {
 
         registerHooks() {
 
-            this.S.addHook(this._addSNSAfterDeploy.bind(this), {
+            S.addHook(this._addSNSAfterDeploy.bind(this), {
                 action: 'functionDeploy',
                 event:  'post'
             });
-            this.S.addHook(this._addSNSAfterDeploy.bind(this), {
+            S.addHook(this._addSNSAfterDeploy.bind(this), {
                 action: 'dashDeploy',
                 event:  'post'
             });
@@ -63,7 +61,7 @@ module.exports = function(SPlugin) {
             _this.stage = evt.options.stage;
             _this._initAws(region);
 
-            if (_this.S.cli.action != 'deploy' || (_this.S.cli.context != 'function' && _this.S.cli.context != 'dash'))
+            if (S.cli.action != 'deploy' || (S.cli.context != 'function' && S.cli.context != 'dash'))
                 return;
 
             _this.functionSNSSettings = _this._getFunctionsSNSSettings(evt, region);
@@ -83,9 +81,9 @@ module.exports = function(SPlugin) {
             });
         }
 
-        /** 
+        /**
          * Binds functions to topics
-         */ 
+         */
         _bindFunctions (settings) {
             let _this = this;
 
@@ -128,7 +126,7 @@ module.exports = function(SPlugin) {
             }
         }
 
-        /** 
+        /**
          * returns the topic that needs to be created replaces keys
          *
          * @param object settings
@@ -137,9 +135,9 @@ module.exports = function(SPlugin) {
          */
         _getTopicNameBySettings (settings) {
             var replacements = [];
-            replacements['project'] = this.S.state.meta.variables.project;
+            replacements['project'] = S.getProject().name;
             replacements['stage'] = this.stage;
-            replacements['functionName']= settings.deployed.functionName;
+            replacements['functionName'] = settings.deployed.functionName;
 
             var topic = settings.sns.topic;
             for (var i in replacements) {
@@ -241,16 +239,16 @@ module.exports = function(SPlugin) {
 
             _this.sns = new AWS.SNS({
                 region: region,
-                accessKeyId: this.S.config.awsAdminKeyId,
-                secretAccessKey: this.S.config.awsAdminSecretKey
+                accessKeyId: S.config.awsAdminKeyId,
+                secretAccessKey: S.config.awsAdminSecretKey
             });
 
             BbPromise.promisifyAll(_this.sns);
 
             _this.lambda = new AWS.Lambda({
                 region: region,
-                accessKeyId: this.S.config.awsAdminKeyId,
-                secretAccessKey: this.S.config.awsAdminSecretKey
+                accessKeyId: S.config.awsAdminKeyId,
+                secretAccessKey: S.config.awsAdminSecretKey
             });
         }
 
@@ -268,14 +266,8 @@ module.exports = function(SPlugin) {
             var settings = [];
             for (var deployedIndex in evt.data.deployed[region]) {
                 let deployed = evt.data.deployed[region][deployedIndex],
-                    settingsFile = _this.S.config.projectPath + '/' + deployed.sPath + '/s-function.json';
-
-                if (!fs.existsSync(settingsFile)) {
-                    continue;
-                }
-
-                try {
-                    var config = JSON.parse(fs.readFileSync(settingsFile));
+                    functionName = deployed['functionName'],
+                    config = S.getProject()['functions'][functionName];
 
                     if (!config.sns) {
                         continue;
@@ -285,10 +277,6 @@ module.exports = function(SPlugin) {
                         "deployed": deployed,
                         "sns": config.sns
                     });
-                } catch (e) {
-                    console.log('s-function.json not readable');
-                    continue;
-                }            
             }
 
             return settings;
