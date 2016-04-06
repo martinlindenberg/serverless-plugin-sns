@@ -5,7 +5,7 @@ Serverless Plugin SNS
 
 This plugin easily subscribes your lambda functions to SNS notifications.
 
-*Note*: This plugin supports Serverless 0.4.* (please see previous versions for older sls versions)
+*Note*: This plugin supports Serverless 0.5.* (please see previous versions for older sls versions)
 
 
 ### Installation
