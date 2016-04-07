@@ -235,20 +235,21 @@ module.exports = function(S) {
          * @return void
          */
         _initAws (region) {
-            let _this = this;
+            let _this = this
+                credentials = S.getProvider('aws').getCredentials(_this.stage, region);;
 
             _this.sns = new AWS.SNS({
                 region: region,
-                accessKeyId: S.config.awsAdminKeyId,
-                secretAccessKey: S.config.awsAdminSecretKey
+                accessKeyId: credentials.accessKeyId,
+                secretAccessKey: credentials.secretAccessKey
             });
 
             BbPromise.promisifyAll(_this.sns);
 
             _this.lambda = new AWS.Lambda({
                 region: region,
-                accessKeyId: S.config.awsAdminKeyId,
-                secretAccessKey: S.config.awsAdminSecretKey
+                accessKeyId: credentials.accessKeyId,
+                secretAccessKey: credentials.secretAccessKey
             });
         }
 
