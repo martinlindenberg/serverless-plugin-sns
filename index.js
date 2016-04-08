@@ -235,7 +235,7 @@ module.exports = function(S) {
          * @return void
          */
         _initAws (region) {
-            let _this = this
+            let _this = this,
                 credentials = S.getProvider('aws').getCredentials(_this.stage, region);;
 
             _this.sns = new AWS.SNS({
