@@ -241,7 +241,8 @@ module.exports = function(S) {
             _this.sns = new AWS.SNS({
                 region: region,
                 accessKeyId: credentials.accessKeyId,
-                secretAccessKey: credentials.secretAccessKey
+                secretAccessKey: credentials.secretAccessKey,
+                sessionToken: credentials.sessionToken
             });
 
             BbPromise.promisifyAll(_this.sns);
@@ -249,7 +250,8 @@ module.exports = function(S) {
             _this.lambda = new AWS.Lambda({
                 region: region,
                 accessKeyId: credentials.accessKeyId,
-                secretAccessKey: credentials.secretAccessKey
+                secretAccessKey: credentials.secretAccessKey,
+                sessionToken: credentials.sessionToken
             });
         }
 

@@ -1,6 +1,6 @@
 {
   "name": "serverless-plugin-sns",
-  "version": "0.0.10",
+  "version": "0.5.5",
   "engines": {
     "node": ">=4.0"
   },
