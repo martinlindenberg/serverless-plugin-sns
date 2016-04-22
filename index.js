@@ -239,7 +239,12 @@ module.exports = function(S) {
             let _this = this,
                 credentials = S.getProvider('aws').getCredentials(_this.stage, region);
 
-            return credentials.then(function(creds) {
+            return BbPromise.resolve()
+            .then(function() {
+                // Will handle this if it's a promise or an object
+                return credentials;
+            })
+            .then(function(creds) {
                 _this.sns = new AWS.SNS({
                     region: region,
                     accessKeyId: creds.accessKeyId,
