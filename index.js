@@ -60,19 +60,20 @@ module.exports = function(S) {
             let _this = this;
 
             _this.stage = evt.options.stage;
-            _this._initAws(region);
+            _this._initAws(region)
+            .then(function() {
+                if (S.cli.action != 'deploy' || (S.cli.context != 'function' && S.cli.context != 'dash'))
+                    return;
 
-            if (S.cli.action != 'deploy' || (S.cli.context != 'function' && S.cli.context != 'dash'))
-                return;
+                _this.functionSNSSettings = _this._getFunctionsSNSSettings(evt, region);
 
-            _this.functionSNSSettings = _this._getFunctionsSNSSettings(evt, region);
+                // no sns.json found
+                if (_this.functionSNSSettings.length == 0) {
+                    return;
+                }
 
-            // no sns.json found
-            if (_this.functionSNSSettings.length == 0) {
-                return;
-            }
-
-            _this._manageTopics(_this.functionSNSSettings)
+                return _this._manageTopics(_this.functionSNSSettings)
+            })
             .then(function(){
                 let _this = this;
                 _this._bindFunctions(_this.functionSNSSettings);
@@ -236,23 +237,30 @@ module.exports = function(S) {
          */
         _initAws (region) {
             let _this = this,
-                credentials = S.getProvider('aws').getCredentials(_this.stage, region);;
+                credentials = S.getProvider('aws').getCredentials(_this.stage, region);
 
-            _this.sns = new AWS.SNS({
-                region: region,
-                accessKeyId: credentials.accessKeyId,
-                secretAccessKey: credentials.secretAccessKey,
-                sessionToken: credentials.sessionToken
-            });
+            return BbPromise.resolve()
+            .then(function() {
+                // Will handle this if it's a promise or an object
+                return credentials;
+            })
+            .then(function(creds) {
+                _this.sns = new AWS.SNS({
+                    region: region,
+                    accessKeyId: creds.accessKeyId,
+                    secretAccessKey: creds.secretAccessKey,
+                    sessionToken: creds.sessionToken
+                });
 
-            BbPromise.promisifyAll(_this.sns);
+                BbPromise.promisifyAll(_this.sns);
 
-            _this.lambda = new AWS.Lambda({
-                region: region,
-                accessKeyId: credentials.accessKeyId,
-                secretAccessKey: credentials.secretAccessKey,
-                sessionToken: credentials.sessionToken
-            });
+                _this.lambda = new AWS.Lambda({
+                    region: region,
+                    accessKeyId: creds.accessKeyId,
+                    secretAccessKey: creds.secretAccessKey,
+                    sessionToken: creds.sessionToken
+                });
+            })
         }
 
 
