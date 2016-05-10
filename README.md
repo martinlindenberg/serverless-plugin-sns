@@ -31,7 +31,7 @@ npm install serverless-plugin-sns
 
 ### Run the Plugin
 
- - the plugin uses a hook that is called after each deployment of a function 
+ - the plugin uses a hook that is called after each deployment of a function
  - you only have to deploy your function as usual `sls function deploy`
  - add the following attribute to the s-function.json in your functions folder
 
@@ -57,8 +57,21 @@ example:
   },
 ```
 
+### Subscribe a lambda to multiple SNS Topics
+
+ - put an array of topics to the sns attribute
+
+```
+  ...
+  "sns": [
+    {"topic": "your-dev-sns-topic1"},
+    {"topic": "your-dev-sns-topic2"}
+  ]
+  ...
+```
+
 ### Next Steps
 
  - create notifications that push events to sns topics
- - for example: cloudwatch alerts can submit notifications to sns topics 
+ - for example: cloudwatch alerts can submit notifications to sns topics
  - @see https://github.com/martinlindenberg/serverless-plugin-alerting :)

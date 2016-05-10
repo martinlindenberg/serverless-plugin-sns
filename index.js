@@ -95,35 +95,39 @@ module.exports = function(S) {
                 functionArn = functionArn.split(':');
                 functionArn.pop();
                 functionArn = functionArn.join(':');
-                var sns = _this._getTopicNameBySettings(settings[i]);
-                var topicArn = _this._getTopicArnByFunctionArn(functionArn, sns);
 
-                SCli.log('binding function ' + settings[i].deployed.functionName + ' to topic ' + sns);
-                _this.sns.subscribeAsync({
-                    'Protocol': 'lambda',
-                    'TopicArn': topicArn,
-                    'Endpoint': functionArn + ":" + _this.stage,
-                })
-                .then(function(result){
-                    return new BbPromise(function(resolve, reject) {
-                        _this.lambda.addPermission({
-                            FunctionName: functionName,
-                            StatementId: Date.now().toString(),
-                            Action: 'lambda:InvokeFunction',
-                            Principal: 'sns.amazonaws.com',
-                            SourceArn: topicArn,
-                        }, function callback(err, data) {
-                            if (err) {
-                                reject(err);
-                            } else {
-                                resolve(data);
-                            }
+                var sns = _this._getTopicNamesBySettings(settings[i]);
+
+                for (var j in sns) {
+                    var topicArn = _this._getTopicArnByFunctionArn(functionArn, sns[j]);
+
+                    SCli.log('binding function ' + settings[i].deployed.functionName + ' to topic ' + sns[j]);
+                    _this.sns.subscribeAsync({
+                        'Protocol': 'lambda',
+                        'TopicArn': topicArn,
+                        'Endpoint': functionArn + ":" + _this.stage,
+                    })
+                    .then(function(result){
+                        return new BbPromise(function(resolve, reject) {
+                            _this.lambda.addPermission({
+                                FunctionName: functionName,
+                                StatementId: Date.now().toString(),
+                                Action: 'lambda:InvokeFunction',
+                                Principal: 'sns.amazonaws.com',
+                                SourceArn: topicArn,
+                            }, function callback(err, data) {
+                                if (err) {
+                                    reject(err);
+                                } else {
+                                    resolve(data);
+                                }
+                            });
                         });
+                    })
+                    .then(function(result) {
+                        SCli.log('done');
                     });
-                })
-                .then(function(result) {
-                    SCli.log('done');
-                });
+                }
             }
         }
 
@@ -132,20 +136,31 @@ module.exports = function(S) {
          *
          * @param object settings
          *
-         * @return string
+         * @return array
          */
-        _getTopicNameBySettings (settings) {
+        _getTopicNamesBySettings (settings) {
             var replacements = [];
             replacements['project'] = S.getProject().name;
             replacements['stage'] = this.stage;
             replacements['functionName'] = settings.deployed.functionName;
 
-            var topic = settings.sns.topic;
-            for (var i in replacements) {
-                topic = topic.replace('${' + i + '}', replacements[i]);
+            var topics = [];
+
+            if (Object.prototype.toString.call(settings.sns) === '[object Array]') {
+                for (var i in settings.sns) {
+                    topics[settings.sns[i].topic] = settings.sns[i].topic
+                }
+            } else {
+                topics = [settings.sns.topic];
             }
 
-            return topic;
+            for (var i in replacements) {
+                for (var j in topics) {
+                    topics[j] = topics[j].replace('${' + i + '}', replacements[i]);
+                }
+            }
+
+            return topics;
         }
 
         _getTopicArnByFunctionArn(functionArn, topicName){
@@ -167,9 +182,13 @@ module.exports = function(S) {
             var _this = this;
 
             var topics = [];
+            var topicslist = [];
             for (var i in settings) {
-                var topic = _this._getTopicNameBySettings(settings[i]);
-                topics[topic] = topic;
+                topicslist = _this._getTopicNamesBySettings(settings[i]);
+
+                for (var j in topicslist) {
+                    topics[topicslist[j]] = topicslist[j]
+                }
             }
 
             return _this._createTopics(topics);
