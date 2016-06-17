@@ -108,20 +108,30 @@ module.exports = function(S) {
                         'Endpoint': functionArn + ":" + _this.stage,
                     })
                     .then(function(result){
+                        var statementId = settings[i].deployed.functionName + '_' + sns[j];
+
                         return new BbPromise(function(resolve, reject) {
-                            _this.lambda.addPermission({
-                                FunctionName: functionName,
-                                StatementId: Date.now().toString(),
-                                Action: 'lambda:InvokeFunction',
-                                Principal: 'sns.amazonaws.com',
-                                SourceArn: topicArn,
-                            }, function callback(err, data) {
-                                if (err) {
-                                    reject(err);
-                                } else {
-                                    resolve(data);
+                            _this.lambda.removePermission(
+                                {
+                                    FunctionName: functionName,
+                                    StatementId: statementId
+                                },
+                                function() {
+                                    _this.lambda.addPermission({
+                                        FunctionName: functionName,
+                                        StatementId: statementId,
+                                        Action: 'lambda:InvokeFunction',
+                                        Principal: 'sns.amazonaws.com',
+                                        SourceArn: topicArn,
+                                    }, function callback(err, data) {
+                                        if (err) {
+                                            reject(err);
+                                        } else {
+                                            resolve(data);
+                                        }
+                                    });
                                 }
-                            });
+                            );
                         });
                     })
                     .then(function(result) {
