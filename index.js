@@ -108,8 +108,9 @@ module.exports = function(S) {
                         'Endpoint': functionArn + ":" + _this.stage,
                     })
                     .then(function(result){
-                        var statementId = settings[i].deployed.functionName + '_' + sns[j];
-
+                        var topicName = sns[j];
+                        topicName = topicName.replace(/:/g, '_');
+                        var statementId = settings[i].deployed.functionName + '_' + topicName;
                         return new BbPromise(function(resolve, reject) {
                             _this.lambda.removePermission(
                                 {
@@ -174,6 +175,10 @@ module.exports = function(S) {
         }
 
         _getTopicArnByFunctionArn(functionArn, topicName){
+            if (topicName.indexOf('arn:aws:sns') >= 0) {
+                return topicName;
+            }
+
             var start = functionArn.split(':function:');
             var topicArn = start[0] + ':' + topicName;
 
@@ -231,6 +236,10 @@ module.exports = function(S) {
                 var topicCreatePromises = [];
 
                 for (var i in this.topics) {
+                    if (i.indexOf('arn:aws:sns') >= 0) {
+                        continue;
+                    }
+
                     if (!topicList[i]) {
                         SCli.log('topic ' + i + ' does not exist. it will be created now');
                         topicCreatePromises.push(
