@@ -62,8 +62,6 @@ module.exports = function(S) {
             _this.stage = evt.options.stage;
             _this._initAws(region)
             .then(function() {
-                if (S.cli.action != 'deploy' || (S.cli.context != 'function' && S.cli.context != 'dash'))
-                    return;
 
                 _this.functionSNSSettings = _this._getFunctionsSNSSettings(evt, region);
 
