@@ -115,20 +115,24 @@ module.exports = function(S) {
                                     FunctionName: functionName,
                                     StatementId: statementId
                                 },
-                                function() {
-                                    _this.lambda.addPermission({
-                                        FunctionName: functionName,
-                                        StatementId: statementId,
-                                        Action: 'lambda:InvokeFunction',
-                                        Principal: 'sns.amazonaws.com',
-                                        SourceArn: topicArn,
-                                    }, function callback(err, data) {
-                                        if (err) {
-                                            reject(err);
-                                        } else {
-                                            resolve(data);
-                                        }
-                                    });
+                                function (err, data) {
+                                    if (err) {
+                                        reject(err);
+                                    } else {
+                                        _this.lambda.addPermission({
+                                            FunctionName: functionName,
+                                            StatementId: statementId,
+                                            Action: 'lambda:InvokeFunction',
+                                            Principal: 'sns.amazonaws.com',
+                                            SourceArn: topicArn,
+                                        }, function callback(err, data) {
+                                            if (err) {
+                                                reject(err);
+                                            } else {
+                                                resolve(data);
+                                            }
+                                        });
+                                    }
                                 }
                             );
                         });
