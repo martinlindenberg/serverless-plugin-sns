@@ -116,7 +116,7 @@ module.exports = function(S) {
                                     StatementId: statementId
                                 },
                                 function (err, data) {
-                                    if (err) {
+                                    if (err && err.code != 'ResourceNotFoundException') {
                                         reject(err);
                                     } else {
                                         _this.lambda.addPermission({
